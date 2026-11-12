@@ -1,0 +1,16 @@
+{
+  "name": "안전비서 — 산업안전·중대재해 업무지원",
+  "short_name": "안전비서",
+  "description": "산업안전보건법·안전보건규칙·중대재해처벌법 관리요령, 자가점검, 위반사례별 벌칙·과태료",
+  "lang": "ko",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f5f4",
+  "theme_color": "#c2410c",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
