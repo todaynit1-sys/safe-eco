@@ -1,6 +1,6 @@
 /* 안전비서 — 서비스워커 (오프라인 캐시)
  * 배포할 때마다 VERSION을 바꿔야 사용자 기기에 새 파일이 전달됩니다. */
-var VERSION = 'safe-v1.0.0-2026.11.12';
+var VERSION = 'safe-v1.1.0-2026.11.12';
 var CORE = [
   './',
   'index.html',
@@ -8,6 +8,8 @@ var CORE = [
   'js/data.js',
   'js/ask.js',
   'js/search.js',
+  'js/cine.js',
+  'js/scenes.js',
   'js/app.js',
   'manifest.webmanifest',
   'icons/icon.svg',

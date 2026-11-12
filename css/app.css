@@ -456,6 +456,56 @@ button.set-row:hover > span:first-child { color: var(--primary); }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes up { from { transform: translateY(16px); opacity: 0; } to { transform: none; opacity: 1; } }
 
+/* 13-1. 모션그래픽 ------------------------------------------- */
+/* 예고 카드 (위반사례 상세) */
+.cine-card {
+  display: flex; align-items: center; gap: 14px; width: 100%; padding: 14px 16px; min-height: 72px;
+  background: #0b1622; color: #eef3f6; border: 1px solid #1d3448; border-radius: var(--r);
+  transition: border-color .15s var(--ease), background-color .15s var(--ease);
+}
+.cine-card:hover { border-color: #ff9a3d; background: #0f1d2c; }
+.cine-card-ico { width: 44px; height: 44px; border-radius: 50%; background: #ff9a3d; color: #1c0d04; display: grid; place-items: center; flex: none; }
+.cine-card-ico svg { width: 22px; height: 22px; margin-left: 2px; }
+.cine-card b { display: block; font-weight: 600; }
+.cine-card .grow > span { display: block; font-size: .8125rem; color: #8fa3b1; margin-top: 2px; }
+.cine-card > svg { width: 18px; height: 18px; color: #8fa3b1; flex: none; }
+/* 재생기 — 밝은 화면에서도 항상 어두운 무대 */
+.cine {
+  position: fixed; inset: 0; z-index: 80; background: #05090f; color: #eef3f6; overflow-y: auto;
+  display: flex; flex-direction: column; align-items: center;
+  padding: env(safe-area-inset-top) 0 calc(12px + env(safe-area-inset-bottom));
+  animation: fade .2s var(--ease);
+}
+.cine > * { width: 100%; max-width: max(320px, min(1100px, calc((100dvh - 268px) * 5 / 3))); flex: none; }
+.cine-top { display: flex; align-items: center; gap: 10px; padding: 6px 8px 6px 16px; min-height: 52px; }
+.cine-kicker { font-size: .75rem; font-weight: 600; color: #ff9a3d; flex: none; }
+.cine-title { flex: 1; min-width: 0; font-weight: 600; font-size: .9375rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cine-stage { position: relative; background: #000; }
+.cine-stage canvas { display: block; width: 100%; aspect-ratio: 5 / 3; height: auto; }
+.cine-tap { position: absolute; top: 0; bottom: 0; background: transparent; }
+.cine-tap-l { left: 0; width: 33%; }
+.cine-tap-r { right: 0; width: 67%; }
+.cine-cap { padding: 14px 16px 10px; min-height: 8.8em; }
+.cine-step { display: inline-block; font-size: .8125rem; font-weight: 600; color: #ff9a3d; }
+.cine-text { margin-top: 4px; font-size: 1.125rem; line-height: 1.6; font-weight: 500; }
+.cine-bar { display: flex; gap: 6px; padding: 0 16px; }
+.cine-bar button { flex: 1; min-width: 0; padding: 10px 0 6px; text-align: left; color: #6f8494; }
+.cine-bar button::before { content: ""; display: block; height: 4px; border-radius: 2px; background: #1d3448; }
+.cine-bar button i { display: block; height: 4px; margin-top: -4px; border-radius: 2px; background: #ff9a3d; width: 0; }
+.cine-bar button span { display: block; margin-top: 6px; font-size: .75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cine-bar button[aria-current="step"] { color: #eef3f6; }
+.cine-ctl { display: flex; align-items: center; gap: 4px; padding: 6px 12px; }
+.cine-btn { min-width: 44px; height: 44px; padding: 0 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: 10px; color: #c8d4dc; font-size: .8125rem; transition: background-color .15s var(--ease), color .15s var(--ease); }
+.cine-btn:hover { background: #12202f; color: #fff; }
+.cine-btn svg { width: 22px; height: 22px; flex: none; }
+.cine-play { background: #ff9a3d; color: #1c0d04; width: 52px; border-radius: 50%; }
+.cine-play:hover { background: #ffb066; color: #1c0d04; }
+.cine-clock { margin: 0 auto 0 10px; font-size: .8125rem; color: #8fa3b1; font-variant-numeric: tabular-nums; }
+.cine-snd[aria-pressed="false"] { color: #6f8494; }
+.cine-note { padding: 4px 16px 0; font-size: .75rem; color: #6f8494; line-height: 1.6; }
+.cine :focus-visible { outline: 2px solid #ff9a3d; outline-offset: 2px; }
+@media (max-width: 420px) { .cine-snd span { display: none; } }
+
 /* 14. 푸터 --------------------------------------------------- */
 .footer { border-top: 1px solid var(--border); margin-top: 32px; padding: 20px 0 0; font-size: .8125rem; color: var(--fg-subtle); line-height: 1.7; }
 .footer button { color: var(--primary); text-decoration: underline; min-height: 32px; }
@@ -463,7 +513,7 @@ button.set-row:hover > span:first-child { color: var(--primary); }
 /* 15. 인쇄 --------------------------------------------------- */
 @media print {
   :root { --bg: #fff; --bg-elev: #fff; --fg: #000; --border: #999; }
-  .no-print, .topbar, .lawbar, .tabbar, .totop, .toast, .footer, .seg button:not([aria-pressed="true"]) { display: none !important; }
+  .no-print, .cine, .topbar, .lawbar, .tabbar, .totop, .toast, .footer, .seg button:not([aria-pressed="true"]) { display: none !important; }
   body { background: #fff; font-size: 11pt; }
   main { padding: 0; }
   .card, .list, .pen, .acc { border-color: #999; break-inside: avoid; }

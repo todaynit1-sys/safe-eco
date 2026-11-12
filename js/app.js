@@ -41,6 +41,7 @@ var I = {
   external: svg('<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>'),
   x: svg('<path d="M18 6 6 18"/><path d="m6 6 12 12"/>'),
   right: svg('<path d="m9 18 6-6-6-6"/>'),
+  play: svg('<path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/>'),
   down: svg('<path d="m6 9 6 6 6-6"/>'),
   back: svg('<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>'),
   up: svg('<path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>'),
@@ -180,7 +181,11 @@ function go(view, o) {
   writeHash(o.replace);
   render(true);
 }
-window.addEventListener('popstate', function () { readHash(); render(true); });
+window.addEventListener('popstate', function () {
+  /* 모션그래픽 재생기가 뒤로가기로 닫히는 경우에는 화면을 다시 그리지 않습니다 */
+  var C = window.SAFE_CINE; if (C && C.isOpen()) return; if (C && C.skipPop) { C.skipPop = false; return; }
+  readHash(); render(true);
+});
 
 /* ---------- 셸 ---------- */
 var NAV = [
@@ -436,6 +441,15 @@ function viewViolations() {
   }).join('') + '</div>';
   return h + '</div>';
 }
+/* 모션그래픽 예고 카드 — 장면이 준비된 위반사례에만 */
+function cineCardHTML(id) {
+  var S = window.SAFE_SCENES, C = window.SAFE_CINE; if (!S || !C) return '';
+  var emg = id === 'emergency'; if (!emg && !S.has(id)) return '';
+  var st = emg ? S.emergency(D.emergency) : S.build(byId(id)); if (!st) return '';
+  var sec = Math.round(st.scenes.reduce(function (a, s) { return a + C.sceneDur(s); }, 0) / 5) * 5;
+  return '<button class="cine-card no-print" data-act="cine" data-id="' + attr(id) + '"><span class="cine-card-ico">' + I.play + '</span>' +
+    '<span class="grow"><b>모션그래픽으로 보기</b><span>' + st.scenes.length + '장면 · 약 ' + sec + '초 · 자막과 배경음·효과음</span></span>' + I.right + '</button>';
+}
 function fineTableHTML(ft) {
   if (!ft || !ft.rows || ft.rows.length < 2) return '';
   var head = ft.rows[0], body = ft.rows.slice(1);
@@ -452,6 +466,9 @@ function viewDetail() {
     '<div class="grow"><div class="badge-row">' + lawBadge(v.law) + '<span class="badge">' + esc(v.group) + '</span></div>' +
     '<h1>' + esc(v.name) + '</h1><p class="art">' + esc(v.article) + (v.basis ? ' · ' + esc(v.basis) : '') + '</p></div>' +
     '<button class="star-btn no-print" data-act="fav" data-id="' + attr(v.id) + '" aria-pressed="' + fav + '" aria-label="즐겨찾기">' + I.star + '</button></div>';
+
+  /* 모션그래픽 */
+  h += cineCardHTML(v.id);
 
   /* 처벌 요약 */
   var pens = [];
@@ -575,6 +592,7 @@ function viewEmergency() {
   var E = D.emergency;
   var h = '<div class="stack-lg">' + pageHead('중대재해 발생 시 대응', esc(E.intro), true);
   h += '<div class="notice danger">' + I.alert + '<div>' + esc(E.alert) + '</div></div>';
+  h += cineCardHTML('emergency');
   h += '<section class="card card-pad"><div class="timeline">' + E.steps.map(function (s, i) {
     return '<div class="tl-step"><span class="tl-dot">' + (i + 1) + '</span><div class="tl-when">' + esc(s.when) + '</div><div class="tl-title">' + esc(s.title) + '</div>' +
       '<ul class="bullets small" style="margin-top:6px">' + s.items.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' +
@@ -653,7 +671,7 @@ function openAbout() {
     '<div style="padding:12px 0;border-top:1px solid var(--border)"><h3>이 기기에만 저장되는 것</h3><ul class="bullets small muted" style="margin-top:6px">' +
       '<li>즐겨찾기, 최근 본 위반사례, 자가점검 응답과 점검 기록, 화면 설정</li><li>서버로 보내지 않습니다. 설정의 \'저장 데이터 삭제\'로 모두 지울 수 있습니다.</li></ul></div>' +
     '<div style="padding:12px 0;border-top:1px solid var(--border)"><h3>밖으로 나가는 요청</h3><ul class="bullets small muted" style="margin-top:6px">' +
-      '<li>한글 글꼴(Pretendard) 파일 요청 — 실패해도 기기 글꼴로 보입니다.</li><li>\'법령 원문\' 링크를 누를 때 국가법령정보센터로 이동합니다.</li><li>이용 통계·AI 분석 요청은 없습니다.</li></ul></div>' +
+      '<li>한글 글꼴(Pretendard) 파일 요청 — 실패해도 기기 글꼴로 보입니다.</li><li>\'법령 원문\' 링크를 누를 때 국가법령정보센터로 이동합니다.</li><li>이용 통계·AI 분석 요청은 없습니다.</li><li>모션그래픽의 소리는 기기 안에서 만들어 내며 음원 파일이나 음성 서비스를 쓰지 않습니다.</li></ul></div>' +
     '<p class="small subtle" style="padding-top:12px;border-top:1px solid var(--border)">이 앱은 업무 참고용이며 법적 효력이 없습니다. 처분·처벌 판단은 국가법령정보센터 원문과 관할 지방고용노동관서에 확인하세요.</p>');
 }
 function openChangelog() {
@@ -718,6 +736,10 @@ document.addEventListener('click', function (e) {
     case 'sharev': shareUrl(location.href.split('#')[0] + '#/detail?id=' + encodeURIComponent(el.getAttribute('data-id')), byId(el.getAttribute('data-id')).name); break;
     case 'shareapp': shareUrl(location.href.split('#')[0], '안전비서 — 산업안전·중대재해 업무지원'); break;
     case 'print': window.print(); break;
+    case 'cine':
+      var cid = el.getAttribute('data-id'), cst = cid === 'emergency' ? window.SAFE_SCENES.emergency(D.emergency) : window.SAFE_SCENES.build(byId(cid));
+      if (cst) window.SAFE_CINE.open(cst);
+      break;
     case 'jump': var tg = document.getElementById(el.getAttribute('data-target')); if (tg) { tg.scrollIntoView({ behavior: 'smooth', block: 'start' }); tg.setAttribute('tabindex', '-1'); tg.focus({ preventScroll: true }); } break;
     case 'totop': window.scrollTo({ top: 0, behavior: 'smooth' }); break;
     case 'settings': openSettings(); break;

@@ -4,7 +4,7 @@
 
 - 앱 주소: https://safe-eco-one.vercel.app/ (GitHub `main`에 push하면 Vercel이 자동 배포)
 
-[AI 환경비서](https://github.com/todaynit1-sys/ai-eco)와 같은 구성(법령 탭 → 관리요령 · 자가점검 · 위반사례 · 참고자료)을 안전법령에 맞게 옮겼습니다. **AI 상담·AI 변경 영향 검토 기능은 넣지 않았습니다.** 외부 프레임워크·서버 없이 동작하고, 한 번 접속하면 오프라인에서도 열립니다.
+[AI 환경비서](https://github.com/todaynit1-sys/ai-eco)와 같은 구성(법령 탭 → 관리요령 · 자가점검 · 위반사례 · 참고자료)을 안전법령에 맞게 옮겼습니다. **AI 상담·AI 변경 영향 검토 기능과 음성 해설은 넣지 않았습니다.** 외부 프레임워크·서버 없이 동작하고, 한 번 접속하면 오프라인에서도 열립니다.
 
 ## 기능
 
@@ -16,6 +16,7 @@
 | 위반사례 | 분류별 목록, 상세에 처벌 요약(형사처벌 · 사망 시 · 과태료 차수표 · 행정조치 · 양벌) → 근거 조문(국가법령정보센터 링크) → 예방하려면 → 점검·지적 기록 문안 → 확인 수준과 출처 |
 | 참고자료 | 교육시간, 안전관리자 선임기준, 밀폐공간 적정공기, 중처법 의무 9개, 직업성 질병 목록 등 |
 | 중대재해 발생 시 | 작업중지 → 보고 → 현장보존 → 산업재해조사표 → 재발방지 순서, 산안법 '중대재해'와 중처법 '중대산업재해' 구분 |
+| 모션그래픽 | 위반사례 104건과 '중대재해 발생 시' 대응 순서를 4~5장면(약 30초)으로 설명. 위반 → 사고 → 지키는 법 → 처벌. **음성 해설 없이 자막 + 배경음·효과음**(브라우저에서 합성, 음원 파일 없음). 화면 왼쪽 1/3을 누르면 이전 장면, 나머지는 다음 장면 · 스페이스 재생/정지 · Esc·뒤로가기로 닫기 |
 | 검색 | 낱말 검색 + 문장형 검색("지게차에 부딪힐 뻔했어요"). 문장형은 AI가 아니라 현장어→법령어 사전(`js/ask.js`)으로 동작 |
 | 즐겨찾기 | 위반사례 별표, 최근 본 항목 |
 | 설정 | 밝기·글자 크기, 지난 점검 기록, 자료 출처·저장 안내, 개정 이력, 앱 공유, 최신 자료 받기, 저장 데이터 삭제 |
@@ -30,6 +31,8 @@ css/app.css             디자인 시스템 (라이트/다크/인쇄)
 js/data.js              ★ 법령 데이터 — 개정 반영 시 이 파일만 고칩니다
 js/ask.js               문장형 검색 사전 (현장어 → 법령어)
 js/search.js            통합 검색 엔진 (브라우저·Node 공용)
+js/cine.js              모션그래픽 엔진 (Canvas 그리기 · 합성 사운드 · 재생기)
+js/scenes.js            모션그래픽 장면 (위험 유형별 틀 15개 + 위반사례별 자막 연결)
 js/app.js               앱 로직
 sw.js                   서비스워커 (오프라인 캐시) — 배포마다 VERSION 변경
 manifest.webmanifest    홈 화면 추가 설정
@@ -37,6 +40,7 @@ icons/                  앱 아이콘
 tools/serve.cjs         로컬 미리보기 서버  (node tools/serve.cjs → http://127.0.0.1:4180)
 tools/check-data.cjs    데이터 점검 (필수 필드·끊어진 참조·처벌 정보 누락)
 tools/ask-test.cjs      문장형 검색 점검 (tools/ask-cases.json)
+tools/scene-test.cjs    모션그래픽 장면 점검 (모든 장면을 가짜 캔버스에 그려 실행 오류 확인)
 ```
 
 ## 점검
@@ -45,6 +49,7 @@ tools/ask-test.cjs      문장형 검색 점검 (tools/ask-cases.json)
 node tools/check-data.cjs
 node tools/ask-test.cjs
 node tools/ask-test.cjs "맨홀 안에서 작업해요"
+node tools/scene-test.cjs
 ```
 
 ## 데이터 구조 (`js/data.js` → `window.SAFE_DATA`)
@@ -78,6 +83,17 @@ node tools/ask-test.cjs "맨홀 안에서 작업해요"
 ```
 
 `confidence`는 상세 화면 아래에 '원문 대조 / 일부 확인 / 확인 필요'로 표시됩니다. 원문으로 단정하지 못한 부분은 `note`에 남겨 둡니다.
+
+## 모션그래픽 고치기
+
+한 편은 4장면입니다: ① 어떤 위반인가 → ② 무슨 일이 생기나 → ③ 이렇게 지킵니다 → ④ 처벌.
+
+- ①~③ 그림은 `js/scenes.js`의 위험 유형별 틀(`TPL.fall` 추락, `caught` 끼임, `vehicle` 차량, `crane` 양중기, `fire` 화재, `elec` 전기, `collapse` 붕괴, `confined` 밀폐공간, `heat` 폭염, `desk` 서류·체제, `emg` 사고 대응, `contract` 도급, `chem` 화학물질, `health` 보건, `exec` 경영책임자)을 변형(`k`)해 그립니다.
+- 위반사례와 틀은 `M(id, 틀, 변형, 첫 장면 자막, { g: 체크 항목 3개, c2: 둘째 장면 자막 })`으로 연결합니다. 새 위반사례를 추가하면 이 줄을 하나 넣어야 '모션그래픽으로 보기'가 생깁니다.
+- ③ 자막은 위반사례의 `tip`, ④ 그림과 자막은 처벌 정보(`crime`·`crimeDeath`·`fine`·`fineTable`·`corp`)를 그대로 읽습니다. **처벌 데이터를 고치면 애니메이션도 바뀝니다.**
+- 소리는 `js/cine.js`의 `AU`: 배경음(`BEDS` — site·plant·office·hot·under·tense·calm·court)과 효과음(`SFX` — thud·crash·alarm·zap·spark·tick·gavel 등)을 Web Audio로 합성합니다. 장면의 `sfx: [[초, 이름]]`에 맞춰 납니다. 소리 켜기·끄기는 기기에 저장됩니다(`safe.sound`).
+- 그림 속 수치·상황은 예시입니다. 좌표는 1200×720, 왼쪽 위(x<620, y<140)는 장면 제목 자리, 바닥선은 y=600입니다.
+- 고친 뒤 `node tools/scene-test.cjs`로 실행 오류를 확인하고, 그림은 브라우저에서 봅니다. 로컬 서버(`node tools/serve.cjs`)는 검수용으로 `POST /__sheet/<이름>`에 보낸 PNG·JPEG data URL을 `tools/.sheets/`에 저장합니다.
 
 ## 법령 개정 반영 절차
 
